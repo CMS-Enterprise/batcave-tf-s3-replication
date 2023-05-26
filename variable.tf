@@ -15,3 +15,9 @@ variable "app_name" {
   type        = string
   nullable    = false
 }
+
+variable "destination_bucket_profile" {
+  description = "The aws profile that the destination bucket is in"
+  type        = string
+  nullable    = false
+}

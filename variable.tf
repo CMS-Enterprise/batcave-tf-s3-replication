@@ -9,3 +9,9 @@ variable "destination_s3_bucket_arn" {
   type        = string
   nullable    = false
 }
+
+variable "app_name" {
+  description = "App Name"
+  type        = string
+  nullable    = false
+}

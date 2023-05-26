@@ -1,5 +1,5 @@
 resource "aws_iam_role" "replication" {
-  name = "replication-role"
+  name               = "replication-role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",

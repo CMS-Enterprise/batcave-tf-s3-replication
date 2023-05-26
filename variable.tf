@@ -1,10 +1,10 @@
-variable "source_s3_bucket_arn" {
+variable "source_s3_bucket" {
   description = "Source s3 bucket"
   type        = string
   nullable    = false
 }
 
-variable "destination_s3_bucket_arn" {
+variable "destination_s3_bucket" {
   description = "Destination s3 bucket"
   type        = string
   nullable    = false

@@ -31,7 +31,7 @@ resource "aws_iam_policy" "replication" {
       ],
       "Effect": "Allow",
       "Resource": [
-        "${var.source_s3_bucket_arn}"
+        "arn:aws:s3:::${var.source_s3_bucket}"
       ]
     },
     {
@@ -41,7 +41,7 @@ resource "aws_iam_policy" "replication" {
       ],
       "Effect": "Allow",
       "Resource": [
-        "${var.source_s3_bucket_arn}/*"
+        "arn:aws:s3:::${var.source_s3_bucket}/*"
       ]
     },
     {
@@ -50,7 +50,7 @@ resource "aws_iam_policy" "replication" {
         "s3:ReplicateDelete"
       ],
       "Effect": "Allow",
-      "Resource": "${var.destination_s3_bucket_arn}/*"
+      "Resource": "${var.destination_s3_bucket}/*"
     }
   ]
 }

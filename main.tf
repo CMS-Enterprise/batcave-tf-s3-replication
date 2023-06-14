@@ -41,7 +41,7 @@ locals {
 
 
 module "source_s3_bucket" {
-  source = "/home/austin/code/cms/batcave-tf-buckets"
+  source = var.bucket_module
   providers = {
     aws = aws.source_bucket
   }
@@ -55,9 +55,7 @@ module "source_s3_bucket" {
 }
 
 module "destination_s3_bucket" {
-  # Destination must be created after source, as bucket policy references source
-  # depends_on = [ module.source_s3_bucket.s3_buckets ]
-  source = "/home/austin/code/cms/batcave-tf-buckets"
+  source = var.bucket_module
   providers = {
     aws = aws.destination_bucket
   }
@@ -83,21 +81,9 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
 
     status = "Enabled"
 
-    # filter {
-    #   #prefix = "rds-dump"
-    # }
-    # delete_marker_replication {
-    #     status = "Enabled"
-    # }
     destination {
       bucket        = module.destination_s3_bucket.s3_buckets[var.destination_bucket.name].arn
       storage_class = "STANDARD"
     }
   }
 }
-
-
-### All of our AWS billing costs are going to go into an s3 budgets. Currently we can't feed into a specific account
-### We want all of the batcave accounts to feed cost into one bucket
-
-# Need to be able to support

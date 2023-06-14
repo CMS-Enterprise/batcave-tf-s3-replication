@@ -1,5 +1,5 @@
-variable "app_name" {
-  description = "App Name"
+variable "replication_rule_name" {
+  description = "This will be used to name the replication rule and appended to the iam role and policy"
   type        = string
   nullable    = false
 }
@@ -57,4 +57,9 @@ variable "destination_bucket" {
 variable "common_bucket_tags" {
   type    = map(any)
   default = {}
+}
+
+variable "bucket_module" {
+  type     = string
+  nullable = false
 }

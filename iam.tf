@@ -1,6 +1,6 @@
 resource "aws_iam_role" "replication" {
   provider              = aws.source_bucket
-  name                  = "${var.app_name}-replication-role"
+  name                  = "replication-role-${var.replication_rule_name}"
   permissions_boundary  = var.role_permissions_boundary_arn
   force_detach_policies = var.force_detach_policies
   path                  = var.role_path
@@ -66,7 +66,7 @@ data "aws_iam_policy_document" "replication" {
 
 resource "aws_iam_policy_attachment" "replication" {
   provider   = aws.source_bucket
-  name       = "s3-bucket-replication-${var.app_name}"
+  name       = "s3-bucket-replication-${var.replication_rule_name}"
   roles      = [aws_iam_role.replication.name]
   policy_arn = aws_iam_policy.replication.arn
 }

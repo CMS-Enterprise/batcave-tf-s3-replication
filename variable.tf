@@ -1,23 +1,5 @@
-variable "source_s3_bucket" {
-  description = "Source s3 bucket"
-  type        = string
-  nullable    = false
-}
-
-variable "destination_s3_bucket" {
-  description = "Destination s3 bucket"
-  type        = string
-  nullable    = false
-}
-
 variable "app_name" {
   description = "App Name"
-  type        = string
-  nullable    = false
-}
-
-variable "destination_bucket_profile" {
-  description = "The aws profile that the destination bucket is in"
   type        = string
   nullable    = false
 }
@@ -44,4 +26,28 @@ variable "role_path" {
   description = "Path of IAM role"
   type        = string
   default     = "/delegatedadmin/developer/"
+}
+
+variable "source_bucket" {
+  type = object({
+    name                            = string
+    lifecycle_expiration_days       = optional(number, 0)
+    force_destroy                   = optional(bool, true)
+    is_replication_target           = optional(bool, false)
+    replication_target_iam_role_arn = optional(string, null)
+    sse_algorithm                   = optional(string, "aws:kms")
+    bucket_profile                  = string
+  })
+}
+
+variable "destination_bucket" {
+  type = object({
+    name                            = string
+    lifecycle_expiration_days       = optional(number, 0)
+    force_destroy                   = optional(bool, true)
+    is_replication_target           = optional(bool, false)
+    replication_target_iam_role_arn = optional(string, null)
+    sse_algorithm                   = optional(string, "aws:kms")
+    bucket_profile                  = string
+  })
 }

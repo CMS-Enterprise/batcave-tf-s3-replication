@@ -1,38 +1,78 @@
 provider "aws" {
   alias   = "destination_bucket"
   region  = "us-east-1"
-  profile = var.destination_bucket_profile
+  profile = var.destination_bucket.bucket_profile
 }
 
-data "aws_s3_bucket" "source" {
-  bucket = var.source_s3_bucket
+provider "aws" {
+  alias   = "source_bucket"
+  region  = "us-east-1"
+  profile = var.source_bucket.bucket_profile
 }
 
-data "aws_s3_bucket" "destination" {
-  provider = aws.destination_bucket
-  bucket   = var.destination_s3_bucket
+#"AWS" : "arn:aws:iam::${data.aws_caller_identity.source_bucket.account_id}:role${var.replication_role_path}${var.replication_role_name}"
+locals {
+  replication_policy = [
+    {
+      Sid    = "ReplicaPermissionsFiles"
+      Effect = "Allow"
+      Principal = {
+        "AWS" : "${aws_iam_role.replication.arn}"
+      }
+      #arn:aws:iam::568826666399:role/delegatedadmin/developer/cybergeek-replication-role
+      Action = ["s3:ReplicateObject", "s3:ReplicateDelete", "s3:ReplicateTags"]
+      Resource = [
+        "arn:aws:s3:::${var.destination_bucket.name}/*",
+      ]
+    },
+    {
+      Sid    = "ReplicaPermissions"
+      Effect = "Allow"
+      Principal = {
+        "AWS" : "${aws_iam_role.replication.arn}"
+      }
+      Action = ["s3:GetReplicationConfiguration", "s3:ListBucket"]
+      Resource = [
+        "arn:aws:s3:::${var.destination_bucket.name}",
+      ]
+    }
+  ]
 }
 
-resource "aws_s3_bucket_versioning" "source" {
-  bucket = data.aws_s3_bucket.source.id
-  versioning_configuration {
-    status = "Enabled"
+
+module "source_s3_bucket" {
+  source = "/home/austin/code/cms/batcave-tf-buckets"
+  providers = {
+    aws = aws.source_bucket
   }
+  s3_bucket_names = [
+    var.source_bucket.name
+  ]
+  sse_algorithm = "AES256"
+  force_destroy = true
+
+  versioning_enabled = true
 }
 
-resource "aws_s3_bucket_versioning" "destination" {
-  provider = aws.destination_bucket
-  bucket   = data.aws_s3_bucket.destination.id
-  versioning_configuration {
-    status = "Enabled"
+module "destination_s3_bucket" {
+  source = "/home/austin/code/cms/batcave-tf-buckets"
+  providers = {
+    aws = aws.destination_bucket
   }
+  s3_bucket_names = [
+    var.destination_bucket.name
+  ]
+
+  versioning_enabled    = true
+  sse_algorithm         = var.destination_bucket.sse_algorithm
+  force_destroy         = var.destination_bucket.force_destroy
+  extra_bucket_policies = local.replication_policy
 }
 
 resource "aws_s3_bucket_replication_configuration" "replication" {
-  # Must have bucket versioning enabled first
-  depends_on = [aws_s3_bucket_versioning.source, aws_s3_bucket_versioning.destination]
-  role       = aws_iam_role.replication.arn
-  bucket     = data.aws_s3_bucket.source.id
+  provider = aws.source_bucket
+  role     = aws_iam_role.replication.arn
+  bucket   = module.source_s3_bucket.s3_buckets[var.source_bucket.name].id
 
   rule {
     id = var.app_name
@@ -46,7 +86,7 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
     #     status = "Enabled"
     # }
     destination {
-      bucket        = data.aws_s3_bucket.destination.arn
+      bucket        = module.destination_s3_bucket.s3_buckets[var.destination_bucket.name].arn
       storage_class = "STANDARD"
     }
   }

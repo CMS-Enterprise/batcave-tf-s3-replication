@@ -1,4 +1,5 @@
 resource "aws_iam_role" "replication" {
+  provider              = aws.source_bucket
   name                  = "${var.app_name}-replication-role"
   permissions_boundary  = var.role_permissions_boundary_arn
   force_detach_policies = var.force_detach_policies
@@ -20,9 +21,10 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_policy" "replication" {
-  name   = "s3-bucket-replication-${var.app_name}"
-  path   = var.role_path
-  policy = data.aws_iam_policy_document.replication.json
+  provider = aws.source_bucket
+  name     = "s3-bucket-replication-${var.app_name}"
+  path     = var.role_path
+  policy   = data.aws_iam_policy_document.replication.json
 }
 
 data "aws_iam_policy_document" "replication" {
@@ -34,7 +36,7 @@ data "aws_iam_policy_document" "replication" {
       "s3:ListBucket",
     ]
 
-    resources = [data.aws_s3_bucket.source.arn]
+    resources = [module.source_s3_bucket.s3_buckets[var.source_bucket.name].arn]
   }
 
   statement {
@@ -46,7 +48,7 @@ data "aws_iam_policy_document" "replication" {
       "s3:GetObjectVersionTagging",
     ]
 
-    resources = ["${data.aws_s3_bucket.source.arn}/*"]
+    resources = ["${module.source_s3_bucket.s3_buckets[var.source_bucket.name].arn}/*"]
   }
 
   statement {
@@ -58,105 +60,55 @@ data "aws_iam_policy_document" "replication" {
       "s3:ReplicateTags",
     ]
 
-    resources = ["${data.aws_s3_bucket.destination.arn}/*"]
+    resources = ["${module.destination_s3_bucket.s3_buckets[var.destination_bucket.name].arn}/*"]
   }
 }
 
 resource "aws_iam_policy_attachment" "replication" {
+  provider   = aws.source_bucket
   name       = "s3-bucket-replication-${var.app_name}"
   roles      = [aws_iam_role.replication.name]
   policy_arn = aws_iam_policy.replication.arn
 }
 
 
-data "aws_iam_policy_document" "allow_access_from_another_account" {
-  provider = aws.destination_bucket
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.replication.arn]
-    }
+# data "aws_iam_policy_document" "allow_access_from_another_account" {
+#   provider = aws.destination_bucket
+#   statement {
+#     effect = "Allow"
+#     principals {
+#       type        = "AWS"
+#       identifiers = [aws_iam_role.replication.arn]
+#     }
 
-    actions = [
-      "s3:ReplicateObject",
-      "s3:ReplicateDelete",
-    ]
+#     actions = [
+#       "s3:ReplicateObject",
+#       "s3:ReplicateDelete",
+#     ]
 
-    resources = ["${data.aws_s3_bucket.destination.arn}/*"]
-  }
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.replication.arn]
-    }
+#     resources = ["${data.aws_s3_bucket.destination.arn}/*"]
+#   }
+#   statement {
+#     effect = "Allow"
+#     principals {
+#       type        = "AWS"
+#       identifiers = [aws_ia   m_role.replication.arn]
+#     }
 
-    actions = [
-      "s3:List*",
-      "s3:GetBucketVersioning",
-      "s3:PutBucketVersioning"
-    ]
+#     actions = [
+#       "s3:List*",
+#       "s3:GetBucketVersioning",
+#       "s3:PutBucketVersioning"
+#     ]
 
-    resources = ["${data.aws_s3_bucket.destination.arn}"]
-  }
-
-  #   statement {
-  #     sid    = "EnforceTls"
-  #     effect = "Deny"
-
-  #     actions = [
-  #       "s3:*"
-  #     ]
-
-  #     resources = ["${data.aws_s3_bucket.destination.arn}","${data.aws_s3_bucket.destination.arn}/*"]
-  #     condition {
-  #       Bool = {
-  #         test = "Bool"
-  #         variable = "aws:SecureTransport"
-  #         values   = ["false"]
-  #       }
-  #     }
-  #   }
+#     resources = ["${module.destination_s3_bucket.s3_buckets[var.destination_s3_bucket].arn}"]
+#   }
+# }
 
 
-  #   Statement = [
-  #     {
-  #       Sid       = "EnforceTls"
-  #       Effect    = "Deny"
-  #       Principal = "*"
-  #       Action    = "s3:*"
-  #       Resource = [
-  #         "${data.aws_s3_bucket.destination.arn}/*",
-  #         "${data.aws_s3_bucket.destination.arn}",
-  #       ]
-  #       Condition = {
-  #         test = "Bool"
-  #         variable = "aws:SecureTransport"
-  #         values   = ["false"]
-  #       }
-  #     },
-  #     {
-  #       Sid       = "MinimumTlsVersion"
-  #       Effect    = "Deny"
-  #       Principal = "*"
-  #       Action    = "s3:*"
-  #       Resource = [
-  #         "${each.value.arn}/*",
-  #         "${each.value.arn}",
-  #       ]
-  #       Condition = {
-  #         NumericLessThan = {
-  #           "s3:TlsVersion" = "1.2"
-  #         }
-  #       }
-  #     },
-  #   ]
-}
 
-
-resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
-  provider = aws.destination_bucket
-  bucket   = data.aws_s3_bucket.destination.id
-  policy   = data.aws_iam_policy_document.allow_access_from_another_account.json
-}
+# resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
+#   provider = aws.destination_bucket
+#   bucket   = data.aws_s3_bucket.destination.id
+#   policy   = data.aws_iam_policy_document.allow_access_from_another_account.json
+# }

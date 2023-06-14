@@ -48,13 +48,15 @@ module "source_s3_bucket" {
   s3_bucket_names = [
     var.source_bucket.name
   ]
-  sse_algorithm = "AES256"
-  force_destroy = true
-
   versioning_enabled = true
+  sse_algorithm      = var.source_bucket.sse_algorithm
+  force_destroy      = var.source_bucket.force_destroy
+  tags               = merge(var.common_bucket_tags, var.source_bucket.specific_bucket_tags)
 }
 
 module "destination_s3_bucket" {
+  # Destination must be created after source, as bucket policy references source
+  # depends_on = [ module.source_s3_bucket.s3_buckets ]
   source = "/home/austin/code/cms/batcave-tf-buckets"
   providers = {
     aws = aws.destination_bucket
@@ -67,12 +69,14 @@ module "destination_s3_bucket" {
   sse_algorithm         = var.destination_bucket.sse_algorithm
   force_destroy         = var.destination_bucket.force_destroy
   extra_bucket_policies = local.replication_policy
+  tags                  = merge(var.common_bucket_tags, var.destination_bucket.specific_bucket_tags)
 }
 
 resource "aws_s3_bucket_replication_configuration" "replication" {
-  provider = aws.source_bucket
-  role     = aws_iam_role.replication.arn
-  bucket   = module.source_s3_bucket.s3_buckets[var.source_bucket.name].id
+  depends_on = [module.source_s3_bucket.bucket_verisioning, module.destination_s3_bucket.bucket_versioning]
+  provider   = aws.source_bucket
+  role       = aws_iam_role.replication.arn
+  bucket     = module.source_s3_bucket.s3_buckets[var.source_bucket.name].id
 
   rule {
     id = var.app_name
@@ -91,6 +95,8 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
     }
   }
 }
+
+
 ### All of our AWS billing costs are going to go into an s3 budgets. Currently we can't feed into a specific account
 ### We want all of the batcave accounts to feed cost into one bucket
 

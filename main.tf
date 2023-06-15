@@ -79,6 +79,14 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
   rule {
     id = var.replication_rule_name
 
+    filter{
+      prefix = var.prefix_filter
+    }
+
+    delete_marker_replication {
+      status = "Enabled"
+    }
+
     status = "Enabled"
 
     destination {

@@ -59,3 +59,18 @@ variable "common_bucket_tags" {
   default = {}
 }
 
+variable "prefix_filter"{
+  type = string
+  default = ""
+  description = "The prefix a file needs to be copied over. Also works on folders. So if the prefix is hello and you have a folder called hello all files in the hello folder will replicate"
+}
+
+variable "delete_marker_replication" {
+  type    = string
+  default = "Enabled"
+
+  validation {
+    condition     = var.delete_marker_replication == "Enabled" || var.delete_marker_replication == "Disabled"
+    error_message = "Invalid value for delete_marker_replication. Only 'Enabled' or 'Disabled' are allowed."
+  }
+}

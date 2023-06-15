@@ -59,7 +59,3 @@ variable "common_bucket_tags" {
   default = {}
 }
 
-variable "bucket_module" {
-  type     = string
-  nullable = false
-}

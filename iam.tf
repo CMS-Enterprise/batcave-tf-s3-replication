@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "assume_role" {
 
 resource "aws_iam_policy" "replication" {
   provider = aws.source_bucket
-  name     = "s3-bucket-replication-${var.app_name}"
+  name     = "s3-bucket-replication-${var.replication_rule_name}"
   path     = var.role_path
   policy   = data.aws_iam_policy_document.replication.json
 }

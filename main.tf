@@ -41,7 +41,7 @@ locals {
 
 
 module "source_s3_bucket" {
-  source = var.bucket_module
+  source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
   providers = {
     aws = aws.source_bucket
   }
@@ -55,7 +55,7 @@ module "source_s3_bucket" {
 }
 
 module "destination_s3_bucket" {
-  source = var.bucket_module
+  source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
   providers = {
     aws = aws.destination_bucket
   }
@@ -77,7 +77,7 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
   bucket     = module.source_s3_bucket.s3_buckets[var.source_bucket.name].id
 
   rule {
-    id = var.app_name
+    id = var.replication_rule_name
 
     status = "Enabled"
 

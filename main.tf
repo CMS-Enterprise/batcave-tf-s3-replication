@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.61.0"
+    }
+  }
+  required_version = ">= 1.2"
+
+}
+
 provider "aws" {
   alias   = "destination_bucket"
   region  = "us-east-1"
@@ -17,7 +28,7 @@ locals {
       Sid    = "ReplicaPermissionsFiles"
       Effect = "Allow"
       Principal = {
-        "AWS" : "${aws_iam_role.replication.arn}"
+        "AWS" : aws_iam_role.replication.arn
       }
       #arn:aws:iam::568826666399:role/delegatedadmin/developer/cybergeek-replication-role
       Action = ["s3:ReplicateObject", "s3:ReplicateDelete", "s3:ReplicateTags"]
@@ -29,7 +40,7 @@ locals {
       Sid    = "ReplicaPermissions"
       Effect = "Allow"
       Principal = {
-        "AWS" : "${aws_iam_role.replication.arn}"
+        "AWS" : aws_iam_role.replication.arn
       }
       Action = ["s3:GetReplicationConfiguration", "s3:ListBucket"]
       Resource = [
@@ -79,7 +90,7 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
   rule {
     id = var.replication_rule_name
 
-    filter{
+    filter {
       prefix = var.prefix_filter
     }
 

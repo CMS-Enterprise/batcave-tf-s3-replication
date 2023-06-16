@@ -19,7 +19,6 @@ variable "force_detach_policies" {
 variable "role_name" {
   description = "Name of IAM role"
   type        = string
-  default     = ""
 }
 
 variable "role_path" {
@@ -59,9 +58,9 @@ variable "common_bucket_tags" {
   default = {}
 }
 
-variable "prefix_filter"{
-  type = string
-  default = ""
+variable "prefix_filter" {
+  type        = string
+  default     = ""
   description = "The prefix a file needs to be copied over. Also works on folders. So if the prefix is hello and you have a folder called hello all files in the hello folder will replicate"
 }
 

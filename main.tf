@@ -52,7 +52,8 @@ locals {
 
 
 module "source_s3_bucket" {
-  source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
+  #source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
+  source = "/home/austin/code/cms/batcave-tf-buckets"
   providers = {
     aws = aws.source_bucket
   }
@@ -66,7 +67,8 @@ module "source_s3_bucket" {
 }
 
 module "destination_s3_bucket" {
-  source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
+  #source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
+  source = "/home/austin/code/cms/batcave-tf-buckets"
   providers = {
     aws = aws.destination_bucket
   }
@@ -74,11 +76,12 @@ module "destination_s3_bucket" {
     var.destination_bucket.name
   ]
 
-  versioning_enabled    = true
-  sse_algorithm         = var.destination_bucket.sse_algorithm
-  force_destroy         = var.destination_bucket.force_destroy
-  extra_bucket_policies = local.replication_policy
-  tags                  = merge(var.common_bucket_tags, var.destination_bucket.specific_bucket_tags)
+  versioning_enabled              = true
+  sse_algorithm                   = var.destination_bucket.sse_algorithm
+  force_destroy                   = var.destination_bucket.force_destroy
+  extra_bucket_policies           = local.replication_policy
+  tags                            = merge(var.common_bucket_tags, var.destination_bucket.specific_bucket_tags)
+  replication_permission_iam_role = aws_iam_role.replication.arn
 }
 
 resource "aws_s3_bucket_replication_configuration" "replication" {

@@ -6,7 +6,6 @@ terraform {
     }
   }
   required_version = ">= 1.2"
-
 }
 
 provider "aws" {
@@ -21,35 +20,6 @@ provider "aws" {
   profile = var.source_bucket.bucket_profile
 }
 
-#"AWS" : "arn:aws:iam::${data.aws_caller_identity.source_bucket.account_id}:role${var.replication_role_path}${var.replication_role_name}"
-locals {
-  replication_policy = [
-    {
-      Sid    = "ReplicaPermissionsFiles"
-      Effect = "Allow"
-      Principal = {
-        "AWS" : aws_iam_role.replication.arn
-      }
-      #arn:aws:iam::568826666399:role/delegatedadmin/developer/cybergeek-replication-role
-      Action = ["s3:ReplicateObject", "s3:ReplicateDelete", "s3:ReplicateTags"]
-      Resource = [
-        "arn:aws:s3:::${var.destination_bucket.name}/*",
-      ]
-    },
-    {
-      Sid    = "ReplicaPermissions"
-      Effect = "Allow"
-      Principal = {
-        "AWS" : aws_iam_role.replication.arn
-      }
-      Action = ["s3:GetReplicationConfiguration", "s3:ListBucket"]
-      Resource = [
-        "arn:aws:s3:::${var.destination_bucket.name}",
-      ]
-    }
-  ]
-}
-
 
 module "source_s3_bucket" {
   #source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
@@ -60,10 +30,11 @@ module "source_s3_bucket" {
   s3_bucket_names = [
     var.source_bucket.name
   ]
-  versioning_enabled = true
-  sse_algorithm      = var.source_bucket.sse_algorithm
-  force_destroy      = var.source_bucket.force_destroy
-  tags               = merge(var.common_bucket_tags, var.source_bucket.specific_bucket_tags)
+  versioning_enabled   = true
+  sse_algorithm        = var.source_bucket.sse_algorithm
+  force_destroy        = var.source_bucket.force_destroy
+  s3_bucket_kms_key_id = var.source_bucket.s3_bucket_kms_key_id
+  tags                 = merge(var.common_bucket_tags, var.source_bucket.specific_bucket_tags)
 }
 
 module "destination_s3_bucket" {
@@ -79,7 +50,7 @@ module "destination_s3_bucket" {
   versioning_enabled              = true
   sse_algorithm                   = var.destination_bucket.sse_algorithm
   force_destroy                   = var.destination_bucket.force_destroy
-  extra_bucket_policies           = local.replication_policy
+  s3_bucket_kms_key_id            = var.destination_bucket.s3_bucket_kms_key_id
   tags                            = merge(var.common_bucket_tags, var.destination_bucket.specific_bucket_tags)
   replication_permission_iam_role = aws_iam_role.replication.arn
 }

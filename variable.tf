@@ -35,6 +35,7 @@ variable "source_bucket" {
     is_replication_target           = optional(bool, false)
     replication_target_iam_role_arn = optional(string, null)
     sse_algorithm                   = optional(string, "aws:kms")
+    s3_bucket_kms_key_id            = optional(string, null)
     bucket_profile                  = string
     specific_bucket_tags            = optional(map(any), {})
   })
@@ -48,6 +49,7 @@ variable "destination_bucket" {
     is_replication_target           = optional(bool, false)
     replication_target_iam_role_arn = optional(string, null)
     sse_algorithm                   = optional(string, "aws:kms")
+    s3_bucket_kms_key_id            = optional(string, null)
     bucket_profile                  = string
     specific_bucket_tags            = optional(map(any), {})
   })

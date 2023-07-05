@@ -22,8 +22,7 @@ provider "aws" {
 
 
 module "source_s3_bucket" {
-  #source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
-  source = "/home/austin/code/cms/batcave-tf-buckets"
+  source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=0.4.0"
   providers = {
     aws = aws.source_bucket
   }
@@ -38,8 +37,7 @@ module "source_s3_bucket" {
 }
 
 module "destination_s3_bucket" {
-  #source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=s3-repliation-changes"
-  source = "/home/austin/code/cms/batcave-tf-buckets"
+  source = "git::https://code.batcave.internal.cms.gov/batcave-iac/batcave-tf-buckets.git?ref=0.4.0"
   providers = {
     aws = aws.destination_bucket
   }
